@@ -1,20 +1,19 @@
 import axios from "axios";
-import SCREENS from "../eserver_screens/screens";
 import Jimp from "jimp";
 
-export const getProduction = async (): Promise<string> => {
+export const getSimpleScreen = async (screen: string): Promise<string> => {
   return new Promise<string>(async (resolve, reject) => {
     try {
       // Предварительно загружаем страницу
       await axios
-        .get(`${process.env.ESERVER_BASE_PAGE}${SCREENS.PRODUCTION}`, {
+        .get(`${process.env.ESERVER_BASE_PAGE}${screen}`, {
           timeout: 5000,
         })
         .catch((err) => reject(err));
 
       // Достаем изображение из страницы
       await axios
-        .get(`${process.env.ESERVER_BASE_IMG}${SCREENS.PRODUCTION}.jpg`, {
+        .get(`${process.env.ESERVER_BASE_IMG}${screen}.jpg`, {
           responseType: "arraybuffer",
           timeout: 10000,
         })
