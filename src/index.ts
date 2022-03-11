@@ -1,9 +1,13 @@
-import { throws } from "assert";
-import { Telegraf, Scenes } from "telegraf";
+import { Telegraf, Scenes, Markup } from "telegraf";
 import LocalSession from "telegraf-session-local";
-import { getProduction } from "./data/get_production";
-import { getTrend } from "./data/get_trend";
+import { getSimpleScreen } from "./data/get_simple_screen";
 import MARKUPS from "./markups/markups";
+import SCREENS from "./eserver_screens/screens";
+import {
+  replyError,
+  replyWithPhoto,
+  replyWithPhotoAndKeybord,
+} from "./utils/utils";
 
 // Инициализируем бота
 const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN as string);
@@ -27,6 +31,7 @@ bot.start((ctx) => {
   ctx.reply("Выберите пункт меню!", MARKUPS.COMMON);
 });
 
+// Добавление нового пользователя
 bot.action(/addUser \|(.+)\| \|(.+)\| \|(.+)\|/, async (ctx) => {
   try {
     const id = ctx.match[1];
@@ -41,71 +46,68 @@ bot.action(/addUser \|(.+)\| \|(.+)\| \|(.+)\|/, async (ctx) => {
   }
 });
 
+// Реакция на запрос экрана производительности
 bot.hears(/Производительность/i, (ctx) => {
   ctx.replyWithChatAction("upload_photo");
 
-  getProduction()
-    .then((image64) =>
-      ctx.replyWithPhoto(
-        {
-          source: Buffer.from(image64, "base64"),
-        },
-        {
-          reply_markup: MARKUPS.COMMON.reply_markup,
-        }
-      )
-    )
-    .catch((err) => {
-      console.log(err);
-
-      ctx.reply(`Ошибка`, MARKUPS.COMMON);
-    });
+  getSimpleScreen(SCREENS.PRODUCTION)
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.COMMON))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Реакция на запрос экрана с трендом
 bot.hears(/Тренд/i, (ctx) => {
   ctx.replyWithChatAction("upload_photo");
 
-  getTrend()
-    .then((image64) =>
-      ctx.replyWithPhoto(
-        {
-          source: Buffer.from(image64, "base64"),
-        },
-        {
-          reply_markup: MARKUPS.COMMON.reply_markup,
-        }
-      )
-    )
-    .catch((err) => {
-      console.log(err);
-
-      ctx.reply(`Ошибка`, MARKUPS.COMMON);
-    });
+  getSimpleScreen(SCREENS.TREND)
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.COMMON))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Реакция на запрос экрана с уровнями баков
 bot.hears(/Уровни/i, (ctx) => {
-  ctx.reply(`Вот такие у нас уровни`, MARKUPS.COMMON);
+  ctx.replyWithChatAction("upload_photo");
+
+  getSimpleScreen(SCREENS.LEVELS)
+    .then((image64) => replyWithPhotoAndKeybord(ctx, image64, MARKUPS.TEST))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Реакция на запрос экрана с дополнительной информацией
 bot.hears(/Дополнительно/i, (ctx) => {
-  ctx.reply(`Вот такое у нас дополнительно`, MARKUPS.COMMON);
+  ctx.replyWithChatAction("upload_photo");
+
+  getSimpleScreen(SCREENS.ADDITIONAL)
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.COMMON))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Реакция на запрос экрана данных по KAPPA
 bot.hears(/KAPPA/i, (ctx) => {
-  ctx.reply(`Вот такая у нас KAPPA`, MARKUPS.COMMON);
+  ctx.replyWithChatAction("upload_photo");
+
+  getSimpleScreen(SCREENS.KAPPA)
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.COMMON))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Реакция на запрос экрана по балансу на варке
 bot.hears(/Баланс/i, (ctx) => {
   ctx.reply(`Вот такой у нас баланс`, MARKUPS.COMMON);
 });
 
+// Реакция на запрос экрана выработки
 bot.hears(/Выработка/i, (ctx) => {
-  ctx.reply(`Вот такая у нас выработка`, MARKUPS.COMMON);
+  ctx.replyWithChatAction("upload_photo");
+
+  getSimpleScreen(SCREENS.OUTPUT)
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.COMMON))
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
 // Проверка пользователем на работоспособность
 bot.on("text", (ctx) => {
-  ctx.reply(`Работает`);
+  ctx.reply(`Работает`, MARKUPS.COMMON);
 });
 
 bot.launch();
