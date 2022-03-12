@@ -5,4 +5,5 @@ export default {
   KAPPA: "Product_kappa",
   OUTPUT: "Product_8BDEH",
   LEVELS: "Product_level",
+  BALANCE: "2A_34_GUZ",
 };
