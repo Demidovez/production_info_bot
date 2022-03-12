@@ -4,10 +4,12 @@ import { getSimpleScreen } from "./data/get_simple_screen";
 import MARKUPS from "./markups/markups";
 import SCREENS from "./eserver_screens/screens";
 import {
+  getLevelHelp,
   replyError,
   replyWithPhoto,
-  replyWithPhotoAndKeybord,
+  replyWithPhotoFile,
 } from "./utils/utils";
+import { getFullScreen } from "./data/get_full_screen";
 
 // Инициализируем бота
 const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN as string);
@@ -69,7 +71,7 @@ bot.hears(/Уровни/i, (ctx) => {
   ctx.replyWithChatAction("upload_photo");
 
   getSimpleScreen(SCREENS.LEVELS)
-    .then((image64) => replyWithPhotoAndKeybord(ctx, image64, MARKUPS.TEST))
+    .then((image64) => replyWithPhoto(ctx, image64, MARKUPS.INLINE_LEVEL_HELP))
     .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
@@ -93,7 +95,13 @@ bot.hears(/KAPPA/i, (ctx) => {
 
 // Реакция на запрос экрана по балансу на варке
 bot.hears(/Баланс/i, (ctx) => {
-  ctx.reply(`Вот такой у нас баланс`, MARKUPS.COMMON);
+  ctx.replyWithChatAction("upload_photo");
+
+  getFullScreen(SCREENS.BALANCE)
+    .then((image64) =>
+      replyWithPhotoFile(ctx, image64, MARKUPS.COMMON, "Баланс")
+    )
+    .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
 // Реакция на запрос экрана выработки
@@ -105,9 +113,14 @@ bot.hears(/Выработка/i, (ctx) => {
     .catch((err) => replyError(ctx, err, MARKUPS.COMMON));
 });
 
+// Ответ на запрос справки для обозначений на экране Уровни
+bot.action(/level_help/i, (ctx) => {
+  ctx.reply(getLevelHelp(), MARKUPS.COMMON);
+});
+
 // Проверка пользователем на работоспособность
 bot.on("text", (ctx) => {
-  ctx.reply(`Работает`, MARKUPS.COMMON);
+  ctx.reply("Работает", MARKUPS.COMMON);
 });
 
 bot.launch();

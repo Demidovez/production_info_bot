@@ -1,9 +1,9 @@
 import { Markup, NarrowedContext, Scenes, Types } from "telegraf";
 import {
+  InlineKeyboardMarkup,
   Message,
   ReplyKeyboardMarkup,
 } from "telegraf/typings/core/types/typegram";
-import MARKUPS from "../markups/markups";
 
 type CTX = NarrowedContext<
   Scenes.SceneContext<Scenes.SceneSessionData> & {
@@ -15,8 +15,7 @@ type CTX = NarrowedContext<
 export const replyWithPhoto = (
   ctx: CTX,
   image64: string,
-  markup: Markup.Markup<ReplyKeyboardMarkup>
-  // inlineMarkup:
+  markup: Markup.Markup<ReplyKeyboardMarkup | InlineKeyboardMarkup>
 ): Promise<Message.PhotoMessage> => {
   return ctx.replyWithPhoto(
     {
@@ -28,39 +27,22 @@ export const replyWithPhoto = (
   );
 };
 
-export const replyWithPhotoAndKeybord = async (
+export const replyWithPhotoFile = (
   ctx: CTX,
   image64: string,
-  markup: Markup.Markup<ReplyKeyboardMarkup>
-): Promise<any> => {
-  // await ctx
-  //   .reply("Загрузка...", markup)
-  //   .then((data) => ctx.deleteMessage(data.message_id));
-
-  return ctx
-    .replyWithPhoto(
-      {
-        source: Buffer.from(image64, "base64"),
-      },
-      markup
-    )
-    .then((data) =>
-      ctx.editMessageReplyMarkup({
-        inline_keyboard: [[Markup.button.callback("Coke", "Coke")]],
-      })
-    );
-
-  // return ctx.editMessageMedia(
-  //   { type: "photo", media: { source: Buffer.from(image64, "base64") } },
-  //   MARKUPS.INLINE_LEVEL_HELP
-  // );
-
-  // return ctx.replyWithPhoto(
-  //   {
-  //     source: Buffer.from(image64, "base64"),
-  //   },
-  //   MARKUPS.INLINE_LEVEL_HELP
-  // );
+  markup: Markup.Markup<ReplyKeyboardMarkup | InlineKeyboardMarkup>,
+  caption: string
+): Promise<Message.DocumentMessage> => {
+  return ctx.replyWithDocument(
+    {
+      source: Buffer.from(image64, "base64"),
+      filename: "image.jpg",
+    },
+    {
+      reply_markup: markup.reply_markup,
+      caption: caption,
+    }
+  );
 };
 
 export const replyError = (
@@ -71,4 +53,29 @@ export const replyError = (
   console.log(err);
 
   ctx.reply(`Ошибка`, markup);
+};
+
+export const getLevelHelp = (): string => {
+  return `
+СМ1 - Бак сульфатного мыла 1
+СМ2 - Бак сульфатного мыла 2
+ТМ1 - Бак таллового масла 1
+ТМ2 - Бак таллового масла 2
+
+СЩ1 - Бак слабого щелока 1
+СЩ2 - Бак слабого щелока 2
+ЩС - Бак щелока для сжигания
+КЩ - Бак крепкого щелока
+СЩ - Бак сливного щелока
+ПЩ - Бак промежуточного щелока
+СМ - Бак сульфатного мыла
+
+ЧБЩ - Бак чистого белого щелока
+МЗЩ - Бак мутного зеленого щелока
+ОЗЩ - Бак очищенного зеленого щелока
+ОИ - Бункер обоженной извести
+ИК - Бункер известкового камня
+СБЩ - Бак слабого белого щелока
+ИШ - Бак известкового шлама
+  `;
 };
