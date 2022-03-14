@@ -1,19 +1,14 @@
-import { Markup, NarrowedContext, Scenes, Telegraf, Types } from "telegraf";
+import { Markup, Telegraf } from "telegraf";
 import {
   InlineKeyboardMarkup,
   Message,
   ReplyKeyboardMarkup,
 } from "telegraf/typings/core/types/typegram";
-import { EMarkup, ROLES, UserContext } from "../types/types";
+import { CTX, EPageType, IScreen, ROLES, UserContext } from "../types/types";
 import MARKUPS from "../markups/markups";
 import { getSimpleScreen } from "../data/get_simple_screen";
-
-type CTX = NarrowedContext<
-  Scenes.SceneContext<Scenes.SceneSessionData> & {
-    match: RegExpExecArray;
-  },
-  Types.MountMap["text"]
->;
+import { getFullScreen } from "../data/get_full_screen";
+import { getUsersForSendData } from "../data/get_users_for_send_data";
 
 export const replyWithPhoto = (
   ctx: CTX,
@@ -102,25 +97,64 @@ export const getMarkup = (
 
 export const sendDataInterval = (
   bot: Telegraf<UserContext>,
-  delay: number,
-  screens: string[]
+  period: number,
+  secondsDelay: number = 0
 ) => {
-  const msToNextHour = 3600000 - (new Date().getTime() % 3600000);
+  const now = new Date();
 
+  // Количество мс для интервала
+  const delay = period * 3600 * 1000;
+
+  // Количество часов до первого запуска
+  const countHours = period - (now.getHours() % period);
+
+  // Количество мс до первого запуска
+  const msToNextPeriod = Math.round(
+    new Date(now.getTime() + countHours * 3600 * 1000).setMinutes(0, 0, 0) -
+      now.getTime()
+  );
+
+  // Запускаем первый раз с последующим интервалом (с дополнительной задержкой)
   setTimeout(() => {
     sendScreens();
 
-    setInterval(sendScreens, delay);
-  }, msToNextHour);
+    setInterval(sendScreens, delay + secondsDelay * 1000);
+  }, msToNextPeriod + secondsDelay * 1000);
 
-  const sendScreens = () => {
+  const sendScreens = async () => {
+    const usersData = await getUsersForSendData(period);
+
+    let screens: IScreen[] = [];
+
+    // Извлекаем все уникальные экраны
+    usersData.map((userData) =>
+      userData.screens.map((screen) => {
+        const isExistScreen = screens.some(({ page }) => page === screen.page);
+
+        if (!isExistScreen) {
+          screens.push(screen);
+        }
+      })
+    );
+
+    // bot.telegram.sendChatAction(321438949, "upload_photo");
+
+    // Выгружаем экраны
     screens.map((screen) => {
-      getSimpleScreen(screen)
-        .then((image64) =>
-          bot.telegram.sendPhoto(321438949, {
-            source: Buffer.from(image64, "base64"),
-          })
-        )
+      const getScreen =
+        screen.type === EPageType.photo ? getSimpleScreen : getFullScreen;
+
+      getScreen(screen)
+        .then((image64) => {
+          // Загружаем всем пользователям экраны (если они на них подписаны)
+          usersData.map((userData) => {
+            if (userData.screens.some(({ page }) => page === screen.page)) {
+              bot.telegram.sendPhoto(userData.user_id, {
+                source: Buffer.from(image64, "base64"),
+              });
+            }
+          });
+        })
         .catch((err) => console.log(err));
     });
   };

@@ -15,6 +15,7 @@ import { getFullScreen } from "./data/get_full_screen";
 import { ROLES, UserContext } from "./types/types";
 import { getUser } from "./data/get_user";
 import MARKUPS from "./markups/markups";
+import { sendRequestToLog } from "./data/send_request_to_log";
 
 // Инициализируем бота
 const bot = new Telegraf<UserContext>(process.env.BOT_TOKEN as string);
@@ -25,13 +26,16 @@ const localSession = new LocalSession({
 bot.use(localSession.middleware());
 
 // Создаем сцены
-const stage = new Scenes.Stage<UserContext>([]); // Scenes.SceneContext
+const stage = new Scenes.Stage<UserContext>([]);
 
 // Подключаем сцены к боту
 bot.use(stage.middleware());
 
 // Определяем роли доступа пользователя
 bot.use((ctx, next) => {
+  // Запись в логи
+  sendRequestToLog(ctx);
+
   getUser(ctx.from!.id)
     .then((user) => {
       if (user) {
@@ -66,7 +70,9 @@ bot.action(/addUser \|(.+)\| \|(.+)\| \|(.+)\|/, async (ctx) => {
   }
 });
 
-sendDataInterval(bot, 3600 * 1000, [SCREENS.PRODUCTION]);
+// Запуск рассылки экранов с периодичностью
+sendDataInterval(bot, 1);
+sendDataInterval(bot, 4, 10);
 
 // Реакция на запрос экрана производительности
 bot.hears(/Производительность/i, (ctx) => {
@@ -182,7 +188,7 @@ bot.action(/level_help/i, (ctx) => {
 
 // Проверка пользователем на работоспособность
 bot.on("text", (ctx) => {
-  ctx.reply("Работает", getMarkup(ctx.session.roles));
+  ctx.reply("Неизвестная команда", getMarkup(ctx.session.roles));
 });
 
 bot.launch();
