@@ -1,6 +1,5 @@
-import axios from "axios";
-import SCREENS from "../eserver_screens/screens";
-import { EMarkup, IUserData, ROLES, User } from "../types/types";
+import SCREENS from "../screens/screens";
+import { IUserData } from "../types/types";
 
 export const getUsersForSendData = async (
   period: number

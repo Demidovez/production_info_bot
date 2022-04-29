@@ -1,4 +1,5 @@
 import { NarrowedContext, Scenes, Types } from "telegraf";
+import puppeteer from "puppeteer";
 
 export type CTX = NarrowedContext<
   Scenes.SceneContext<Scenes.SceneSessionData> & {
@@ -37,15 +38,18 @@ export enum EPageType {
 }
 
 export interface IScreen {
-  page: string;
+  link: string;
   type: EPageType;
 }
-
-// export interface IScreens {
-//   [index: string]: IScreen;
-// }
 
 export interface IUserData {
   user_id: number;
   screens: IScreen[];
+}
+
+export interface IPages {
+  [key: string]: {
+    type: EPageType;
+    page: puppeteer.Page;
+  };
 }
