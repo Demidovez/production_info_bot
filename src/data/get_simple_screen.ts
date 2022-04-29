@@ -1,32 +1,23 @@
-import axios from "axios";
 import Jimp from "jimp";
-import { IScreen } from "../types/types";
+import puppeteer from "puppeteer";
 
-export const getSimpleScreen = async (screen: IScreen): Promise<string> => {
+export const getSimpleScreen = async (
+  page: puppeteer.Page
+): Promise<string> => {
   return new Promise<string>(async (resolve, reject) => {
     try {
-      // Предварительно загружаем страницу
-      await axios
-        .get(`${process.env.ESERVER_BASE_PAGE}${screen.page}`, {
-          timeout: 5000,
+      await page
+        .screenshot({
+          encoding: "base64",
+          type: "jpeg",
+          quality: 100,
+          fullPage: true,
         })
-        .catch((err) => reject(err));
-
-      // Достаем изображение из страницы
-      await axios
-        .get(`${process.env.ESERVER_BASE_IMG}${screen.page}.jpg`, {
-          responseType: "arraybuffer",
-          timeout: 10000,
-        })
-        .then((arrayBuffer) => {
-          const buffer = Buffer.from(arrayBuffer.data, "binary").toString(
-            "base64"
-          );
-
-          Jimp.read(Buffer.from(buffer, "base64"))
+        .then((image) => {
+          Jimp.read(Buffer.from(image.toString("base64"), "base64"))
             .then((image) => {
               image
-                .crop(0, 0, 1080, 1080)
+                .crop(430, 0, 1080, 1080)
                 .quality(100)
                 .getBase64(Jimp.MIME_JPEG, (err, src) => {
                   if (err) {

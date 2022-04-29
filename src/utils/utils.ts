@@ -9,6 +9,7 @@ import MARKUPS from "../markups/markups";
 import { getSimpleScreen } from "../data/get_simple_screen";
 import { getFullScreen } from "../data/get_full_screen";
 import { getUsersForSendData } from "../data/get_users_for_send_data";
+import puppeteer from "puppeteer";
 
 export const replyWithPhoto = (
   ctx: CTX,
@@ -98,6 +99,7 @@ export const getMarkup = (
 export const sendDataInterval = (
   bot: Telegraf<UserContext>,
   period: number,
+  page: puppeteer.Page,
   secondsDelay: number = 0
 ) => {
   const now = new Date();
@@ -129,7 +131,7 @@ export const sendDataInterval = (
     // Извлекаем все уникальные экраны
     usersData.map((userData) =>
       userData.screens.map((screen) => {
-        const isExistScreen = screens.some(({ page }) => page === screen.page);
+        const isExistScreen = screens.some(({ link }) => link === screen.link);
 
         if (!isExistScreen) {
           screens.push(screen);
@@ -144,11 +146,11 @@ export const sendDataInterval = (
       const getScreen =
         screen.type === EPageType.photo ? getSimpleScreen : getFullScreen;
 
-      getScreen(screen)
+      getScreen(page)
         .then((image64) => {
           // Загружаем всем пользователям экраны (если они на них подписаны)
           usersData.map((userData) => {
-            if (userData.screens.some(({ page }) => page === screen.page)) {
+            if (userData.screens.some(({ link }) => link === screen.link)) {
               bot.telegram.sendPhoto(userData.user_id, {
                 source: Buffer.from(image64, "base64"),
               });
