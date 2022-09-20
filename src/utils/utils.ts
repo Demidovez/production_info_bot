@@ -161,3 +161,41 @@ export const sendDataInterval = (
     });
   };
 };
+
+export const sendDataWithInterval = (
+  bot: Telegraf<UserContext>,
+  pages: any[]
+) => {
+  const now = new Date();
+  const tomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    now.getHours() + 1
+  );
+  const lastToHour = tomorrow.getTime() - now.getTime();
+
+  const getData = () => {
+    pages.forEach((page) => {
+      try {
+        getSimpleScreen(page.page).then((image64) => {
+          page.users_id.forEach((user_id: number) => {
+            bot.telegram.sendPhoto(user_id, {
+              source: Buffer.from(image64, "base64"),
+            });
+          });
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+  };
+
+  setTimeout(() => {
+    getData();
+
+    setInterval(() => {
+      getData();
+    }, 3600 * 1000);
+  }, lastToHour);
+};

@@ -8,6 +8,7 @@ import {
   replyUnaccess,
   replyWithPhoto,
   replyWithPhotoFile,
+  sendDataWithInterval,
 } from "./utils/utils";
 import { getFullScreen } from "./data/get_full_screen";
 import { ROLES, UserContext } from "./types/types";
@@ -77,7 +78,7 @@ const main = async () => {
   const pages = await generatePages();
 
   // Реакция на запрос экрана производительности
-  bot.hears(/Производительность/i, (ctx) => {
+  bot.hears(/Производ./i, (ctx) => {
     try {
       ctx.replyWithChatAction("upload_photo");
 
@@ -174,24 +175,24 @@ const main = async () => {
   // Реакция на запрос экрана по балансу на варке
   bot.hears(/Баланс/i, (ctx) => {
     try {
-      // ctx.replyWithChatAction("upload_photo");
+      ctx.replyWithChatAction("upload_photo");
 
-      // if (ctx.session.roles?.includes(ROLES.common)) {
-      //   getFullScreen(pages["BALANCE"].page)
-      //     .then((image64) =>
-      //       replyWithPhotoFile(
-      //         ctx,
-      //         image64,
-      //         "Баланс",
-      //         getMarkup(ctx.session.roles)
-      //       )
-      //     )
-      //     .catch((err) => replyError(ctx, err, getMarkup(ctx.session.roles)));
-      // } else {
-      //   replyUnaccess(ctx, getMarkup(ctx.session.roles));
-      // }
+      if (ctx.session.roles?.includes(ROLES.common)) {
+        getFullScreen(pages["BALANCE"].page)
+          .then((image64) =>
+            replyWithPhotoFile(
+              ctx,
+              image64,
+              "Баланс",
+              getMarkup(ctx.session.roles)
+            )
+          )
+          .catch((err) => replyError(ctx, err, getMarkup(ctx.session.roles)));
+      } else {
+        replyUnaccess(ctx, getMarkup(ctx.session.roles));
+      }
 
-      ctx.reply("Данных пока нет", getMarkup(ctx.session.roles));
+      // ctx.reply("Данных пока нет", getMarkup(ctx.session.roles));
     } catch (err) {
       console.log(err);
     }
@@ -231,6 +232,19 @@ const main = async () => {
   bot.on("text", (ctx) => {
     ctx.reply("Неизвестная команда", getMarkup(ctx.session.roles));
   });
+
+  setTimeout(() => {
+    sendDataWithInterval(bot, [
+      {
+        page: pages["PRODUCTION"].page,
+        users_id: [924044537, 321438949],
+      },
+      {
+        page: pages["LEVELS"].page,
+        users_id: [924044537, 321438949],
+      },
+    ]);
+  }, 5000);
 
   bot.launch();
   console.log(`Started ${process.env.BOT_NAME} :: ${new Date()}`);
