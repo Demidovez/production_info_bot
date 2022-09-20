@@ -1,14 +1,14 @@
 import { Markup } from "telegraf";
 
 const COMMON = [
-  ["Производительность", "Тренд"],
+  ["Производ.", "Тренд"],
   ["Уровни", "Дополнительно"],
   ["KAPPA", "Баланс"],
 ];
 
 const VIROBOTKA = [...COMMON, ["Выработка"]];
 
-const TEST = [["Производительность"]];
+const TEST = [["Производ."]];
 
 export default {
   COMMON: Markup.keyboard(COMMON).resize(),
