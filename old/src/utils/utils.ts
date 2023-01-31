@@ -199,10 +199,3 @@ export const sendDataWithInterval = (
     }, 3600 * 1000);
   }, lastToHour);
 };
-
-export const reloadBot = () => {
-  console.log("Перезапуск бота");
-  setTimeout(() => {
-    process.exit(1);
-  }, 5000);
-};

@@ -4,7 +4,6 @@ import { getSimpleScreen } from "./data/get_simple_screen";
 import {
   getLevelHelp,
   getMarkup,
-  reloadBot,
   replyError,
   replyUnaccess,
   replyWithPhoto,
@@ -77,10 +76,6 @@ const main = async () => {
   // sendDataInterval(bot, 4, 10);
 
   const pages = await generatePages();
-
-  bot.hears("Перезапуск", () => {
-    reloadBot();
-  });
 
   // Реакция на запрос экрана производительности
   bot.hears(/Производ./i, (ctx) => {
