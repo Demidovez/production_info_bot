@@ -21,7 +21,7 @@ export const generatePages = async (): Promise<IPages> => {
         });
 
         await page.goto(
-          `${process.env.ESERVER_BASE_PAGE}${SCREENS[screen].link}`,
+          `${process.env.ESERVER_BASE_PAGE_OLD}${SCREENS[screen].link}`,
           {
             waitUntil: "networkidle0",
           }
